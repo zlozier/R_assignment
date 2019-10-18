@@ -40,6 +40,38 @@ teosinte_genotypes <- filter(fang_et_al_genotypes, `Group` == "ZMPBA" | `Group` 
 
 # Transposes maize and teosinte genotype data into new dataframes
 ```{r}
-transposed_maize_genotypes <- as.data.frame(t(fang_et_al_genotypes))
-transposed_teosinte_genotypes <- as.data.frame(t(teosinte_genotypes))
+transposed_maize_genotypes <- as.data.frame(t(as.matrix(maize_genotypes)[,-c(1,2,3)])) #transposes all but the first 3 columns
+colnames(transposed_maize_genotypes) <- maize_genotypes$Sample_ID #restores column names as Sample_ID from maize genotype data
+transposed_maize_genotypes$SNP_ID <- rownames(transposed_maize_genotypes) #adds a variable column with SNP_IDs
+rownames(transposed_maize_genotypes) <- NULL #gets rid of SNP_ID rownames
+transposed_teosinte_genotypes <- as.data.frame(t(teosinte_genotypes[,-c(1,2,3)])) #transposes all but the first 3 columns
+colnames(transposed_teosinte_genotypes) <- teosinte_genotypes$Sample_ID #restores column names as Sample_ID from teosinte genotype data
+transposed_teosinte_genotypes$SNP_ID <- rownames(transposed_teosinte_genotypes)
+rownames(transposed_teosinte_genotypes) <- NULL
+```
+
+# Choosing desired columns from `snp_positions` and writing them to a new dataframe
+```{r}
+reduced_snp_positions <- snp_positions[ ,c("SNP_ID","Chromosome","Position")]
+```
+
+# Merge maize and teosinte genotype dataframes with `reduced_snp_positions` dataframe
+```{r}
+merged_snp_geno_maize <- merge(reduced_snp_positions, transposed_maize_genotypes) #merges `reduced_snp_positions` and `transposed_maize_genotypes` by their common column `$SNP_ID`
+merged_snp_geno_teosinte <- merge(reduced_snp_positions, transposed_teosinte_genotypes) #merges `reduced_snp_positions` and `transposed_teosinte_genotypes` by their common column `$SNP_ID`
+```
+
+# Replacing "?/?" with "?" or "-"
+```{r}
+merged_snp_geno_maize_QM <- data.frame(apply(merged_snp_geno_maize, c(1, 2), function(x) {x <- gsub("?/?", "?", x, fixed = TRUE)})) #creates a dataframe after applying the "gsub" function to every value in the dataframe `merged_snp_geno_maize` to substitute every instance of "?/?" with "?"
+merged_snp_geno_maize_D <- data.frame(apply(merged_snp_geno_maize, c(1, 2), function(x) {x <- gsub("?/?", "-", x, fixed = TRUE)})) #creates a dataframe after applying the "gsub" function to every value in the dataframe `merged_snp_geno_maize` to substitute every instance of "?/?" with "-"
+merged_snp_geno_teosinte_QM <- data.frame(apply(merged_snp_geno_teosinte, c(1, 2), function(x) {x <- gsub("?/?", "?", x, fixed = TRUE)})) #creates a dataframe after applying the "gsub" function to every value in the dataframe `merged_snp_geno_teosinte` to substitute every instance of "?/?" with "?"
+merged_snp_geno_teosinte_D <- data.frame(apply(merged_snp_geno_teosinte, c(1, 2), function(x) {x <- gsub("?/?", "-", x, fixed = TRUE)})) #creates a dataframe after applying the "gsub" function to every value in the dataframe `merged_snp_geno_teosinte` to substitute every instance of "?/?" with "-"
+```
+
+# Parsing dataframes into files based on chromosome number and sorting those files based on SNP position
+```{r}
+merged_snp_geno_maize_D_chr1 <- filter(merged_snp_geno_maize_D, merged_snp_geno_maize_D$Chromosome == 1)
+sorted_merged_snp_geno_maize_D_chr1 <- arrange(merged_snp_geno_maize_D_chr1, Position)
+write_tsv(sorted_merged_snp_geno_maize_D_chr1, "sorted_merged_snp_geno_maize_D_chr1.txt")
 ```
