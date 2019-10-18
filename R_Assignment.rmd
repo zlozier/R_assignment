@@ -12,8 +12,28 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 install.packages("tidyverse") #installs the package collection "tidyverse"
 library(tidyverse) #loads all packages in "tidyverse"
+```
 
-#downloads genotype and SNP data and assigns them to the appropriate variables
+# Downloads genotype and SNP data and assigns them to the appropriate variables
+```{r}
 fang_et_al_genotypes <- read_tsv("https://raw.githubusercontent.com/EEOB-BioData/BCB546X-Fall2019/master/assignments/UNIX_Assignment/fang_et_al_genotypes.txt")
 snp_positions <- read_tsv("https://raw.githubusercontent.com/EEOB-BioData/BCB546X-Fall2019/master/assignments/UNIX_Assignment/snp_position.txt")
+```
+
+# Inspecting the structure and dimensions
+```{r}
+dim(fang_et_al_genotypes) #number of rows x number of columns
+dim(snp_positions)
+nrow(fang_et_al_genotypes) #number of rows
+nrow(snp_positions)
+ncol(fang_et_al_genotypes) #number of columns
+ncol(snp_positions)
+str(fang_et_al_genotypes) #type of object, number of observations and variables, name of variables, variable type, data preview
+str(snp_positions)
+```
+
+# Filtering maize and teosinte groups from `fang_et_al_genotypes` into separate data frames
+```{r}
+maize_genotypes <- filter(fang_et_al_genotypes, `Group` == "ZMMIL" | `Group` == "ZMMLR" | `Group` == "ZMMMR") #isolates maize groups from `fang_et_al_genotypes`
+teosinte_genotypes <- filter(fang_et_al_genotypes, `Group` == "ZMPBA" | `Group` == "ZMPIL" | `Group` == "ZMPJA")
 ```
