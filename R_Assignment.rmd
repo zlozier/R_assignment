@@ -12,4 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 install.packages("tidyverse") #installs the package collection "tidyverse"
 library(tidyverse) #loads all packages in "tidyverse"
+
+#downloads genotype and SNP data and assigns them to the appropriate variables
+fang_et_al_genotypes <- read_tsv("https://raw.githubusercontent.com/EEOB-BioData/BCB546X-Fall2019/master/assignments/UNIX_Assignment/fang_et_al_genotypes.txt")
+snp_positions <- read_tsv("https://raw.githubusercontent.com/EEOB-BioData/BCB546X-Fall2019/master/assignments/UNIX_Assignment/snp_position.txt")
 ```
