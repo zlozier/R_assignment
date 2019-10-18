@@ -37,3 +37,9 @@ str(snp_positions)
 maize_genotypes <- filter(fang_et_al_genotypes, `Group` == "ZMMIL" | `Group` == "ZMMLR" | `Group` == "ZMMMR") #isolates maize groups from `fang_et_al_genotypes`
 teosinte_genotypes <- filter(fang_et_al_genotypes, `Group` == "ZMPBA" | `Group` == "ZMPIL" | `Group` == "ZMPJA")
 ```
+
+# Transposes maize and teosinte genotype data into new dataframes
+```{r}
+transposed_maize_genotypes <- as.data.frame(t(fang_et_al_genotypes))
+transposed_teosinte_genotypes <- as.data.frame(t(teosinte_genotypes))
+```
