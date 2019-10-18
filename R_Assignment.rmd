@@ -1,0 +1,15 @@
+---
+title: "R_Assignment"
+author: "Zach Lozier"
+date: "10/17/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+install.packages("tidyverse") #installs the package collection "tidyverse"
+library(tidyverse) #loads all packages in "tidyverse"
+```
