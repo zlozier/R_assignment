@@ -40,11 +40,11 @@ teosinte_genotypes <- filter(fang_et_al_genotypes, `Group` == "ZMPBA" | `Group` 
 
 # Transposes maize and teosinte genotype data into new dataframes
 ```{r}
-transposed_maize_genotypes <- as.data.frame(t(as.matrix(maize_genotypes)[,-c(1,2,3)])) #transposes all but the first 3 columns
+transposed_maize_genotypes <- as.data.frame(t(as.matrix(maize_genotypes)[,-c(1,2,3)]), stringsAsFactors = FALSE) #transposes all but the first 3 columns
 colnames(transposed_maize_genotypes) <- maize_genotypes$Sample_ID #restores column names as Sample_ID from maize genotype data
 transposed_maize_genotypes$SNP_ID <- rownames(transposed_maize_genotypes) #adds a variable column with SNP_IDs
 rownames(transposed_maize_genotypes) <- NULL #gets rid of SNP_ID rownames
-transposed_teosinte_genotypes <- as.data.frame(t(teosinte_genotypes[,-c(1,2,3)])) #transposes all but the first 3 columns
+transposed_teosinte_genotypes <- as.data.frame(t(teosinte_genotypes[,-c(1,2,3)]), stringsAsFactors = FALSE) #transposes all but the first 3 columns
 colnames(transposed_teosinte_genotypes) <- teosinte_genotypes$Sample_ID #restores column names as Sample_ID from teosinte genotype data
 transposed_teosinte_genotypes$SNP_ID <- rownames(transposed_teosinte_genotypes)
 rownames(transposed_teosinte_genotypes) <- NULL
@@ -63,15 +63,52 @@ merged_snp_geno_teosinte <- merge(reduced_snp_positions, transposed_teosinte_gen
 
 # Replacing "?/?" with "?" or "-"
 ```{r}
-merged_snp_geno_maize_QM <- data.frame(apply(merged_snp_geno_maize, c(1, 2), function(x) {x <- gsub("?/?", "?", x, fixed = TRUE)})) #creates a dataframe after applying the "gsub" function to every value in the dataframe `merged_snp_geno_maize` to substitute every instance of "?/?" with "?"
-merged_snp_geno_maize_D <- data.frame(apply(merged_snp_geno_maize, c(1, 2), function(x) {x <- gsub("?/?", "-", x, fixed = TRUE)})) #creates a dataframe after applying the "gsub" function to every value in the dataframe `merged_snp_geno_maize` to substitute every instance of "?/?" with "-"
-merged_snp_geno_teosinte_QM <- data.frame(apply(merged_snp_geno_teosinte, c(1, 2), function(x) {x <- gsub("?/?", "?", x, fixed = TRUE)})) #creates a dataframe after applying the "gsub" function to every value in the dataframe `merged_snp_geno_teosinte` to substitute every instance of "?/?" with "?"
-merged_snp_geno_teosinte_D <- data.frame(apply(merged_snp_geno_teosinte, c(1, 2), function(x) {x <- gsub("?/?", "-", x, fixed = TRUE)})) #creates a dataframe after applying the "gsub" function to every value in the dataframe `merged_snp_geno_teosinte` to substitute every instance of "?/?" with "-"
+merged_snp_geno_maize_QM <- data.frame(apply(merged_snp_geno_maize, c(1, 2), function(x) {x <- gsub("?/?", "?", x, fixed = TRUE)}), stringsAsFactors = FALSE) #creates a dataframe after applying the "gsub" function to every value in the dataframe `merged_snp_geno_maize` to substitute every instance of "?/?" with "?"
+merged_snp_geno_maize_D <- data.frame(apply(merged_snp_geno_maize, c(1, 2), function(x) {x <- gsub("?/?", "-", x, fixed = TRUE)}), stringsAsFactors = FALSE) #creates a dataframe after applying the "gsub" function to every value in the dataframe `merged_snp_geno_maize` to substitute every instance of "?/?" with "-"
+merged_snp_geno_teosinte_QM <- data.frame(apply(merged_snp_geno_teosinte, c(1, 2), function(x) {x <- gsub("?/?", "?", x, fixed = TRUE)}), stringsAsFactors = FALSE) #creates a dataframe after applying the "gsub" function to every value in the dataframe `merged_snp_geno_teosinte` to substitute every instance of "?/?" with "?"
+merged_snp_geno_teosinte_D <- data.frame(apply(merged_snp_geno_teosinte, c(1, 2), function(x) {x <- gsub("?/?", "-", x, fixed = TRUE)}), stringsAsFactors = FALSE) #creates a dataframe after applying the "gsub" function to every value in the dataframe `merged_snp_geno_teosinte` to substitute every instance of "?/?" with "-"
 ```
 
 # Parsing dataframes into files based on chromosome number and sorting those files based on SNP position
 ```{r}
-merged_snp_geno_maize_D_chr1 <- filter(merged_snp_geno_maize_D, merged_snp_geno_maize_D$Chromosome == 1)
-sorted_merged_snp_geno_maize_D_chr1 <- arrange(merged_snp_geno_maize_D_chr1, Position)
-write_tsv(sorted_merged_snp_geno_maize_D_chr1, "sorted_merged_snp_geno_maize_D_chr1.txt")
+list_merged_files <- list(a=merged_snp_geno_maize_D, b=merged_snp_geno_maize_QM, c=merged_snp_geno_teosinte_D, d=merged_snp_geno_teosinte_QM)
+
+filter_by_chromosome <- function(df)
+  {
+  for (i in 1:10)
+    {
+    file_name <- paste("sorted_",deparse(substitute(df)),"_chr_", as.character(i),".txt", sep = "")
+    temp_df <- filter(df, df$Chromosome == i)
+    sorted_temp_df <- arrange(temp_df, as.numeric(Position))
+    write_tsv(sorted_temp_df, file_name)
+    }
+  }
+
+filter_by_chromosome(merged_snp_geno_maize_D)
+filter_by_chromosome(merged_snp_geno_maize_QM)
+filter_by_chromosome(merged_snp_geno_teosinte_D)
+filter_by_chromosome(merged_snp_geno_teosinte_QM)
+```
+
+# Plotting SNPs per chromosome
+```{r}
+ggplot(data = merged_snp_geno_maize) + geom_bar(mapping = aes(x = Chromosome))
+ggsave("maize_SNPsperChromosome.pdf")
+
+ggplot(data = merged_snp_geno_teosinte) + geom_bar(mapping = aes(x = Chromosome))
+ggsave("teosinte_SNPsperChromosome.pdf")
+
+ggplot(data = merged_snp_geno_maize) + geom_point(mapping = aes(x = Position, y = Chromosome), size = 1)
+ggsave("maize_SNPdistChromosomes.pdf")
+
+ggplot(data = merged_snp_geno_teosinte) + geom_point(mapping = aes(x = Position, y = Chromosome), size = 1)
+ggsave("teosinte_SNPdistChromosomes.pdf")
+```
+
+# Indicate whether a site is heterozygous or not.
+```{r}
+install.packages("reshape2")
+library(reshape2)
+
+
 ```
