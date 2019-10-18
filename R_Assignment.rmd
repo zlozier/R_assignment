@@ -71,9 +71,10 @@ merged_snp_geno_teosinte_D <- data.frame(apply(merged_snp_geno_teosinte, c(1, 2)
 
 # Parsing dataframes into files based on chromosome number and sorting those files based on SNP position
 ```{r}
-list_merged_files <- list(a=merged_snp_geno_maize_D, b=merged_snp_geno_maize_QM, c=merged_snp_geno_teosinte_D, d=merged_snp_geno_teosinte_QM)
+list_merged_files <- list(a=merged_snp_geno_maize_D, b=merged_snp_geno_maize_QM, c=merged_snp_geno_teosinte_D, d=merged_snp_geno_teosinte_QM) #creates a list of maize and teosinte dataframes with either "?" or "-" representing missing data. I made this but couldn't figure out how to use it to loop through the dataframes.
 
-filter_by_chromosome <- function(df)
+##This function iterates through the 10 chromosomes, filters the initial dataset by each chromosome, sorts them according to the assignment specs, and writes the new dataframe to a new file.
+filter_by_chromosome_asc <- function(df)
   {
   for (i in 1:10)
     {
@@ -82,12 +83,22 @@ filter_by_chromosome <- function(df)
     sorted_temp_df <- arrange(temp_df, as.numeric(Position))
     write_tsv(sorted_temp_df, file_name)
     }
+}
+filter_by_chromosome_dsc <- function(df)
+  {
+  for (i in 1:10)
+    {
+    file_name <- paste("sorted_",deparse(substitute(df)),"_chr_", as.character(i),".txt", sep = "")
+    temp_df <- filter(df, df$Chromosome == i)
+    sorted_temp_df <- arrange(temp_df, desc(as.numeric(Position)))
+    write_tsv(sorted_temp_df, file_name)
+    }
   }
 
-filter_by_chromosome(merged_snp_geno_maize_D)
-filter_by_chromosome(merged_snp_geno_maize_QM)
-filter_by_chromosome(merged_snp_geno_teosinte_D)
-filter_by_chromosome(merged_snp_geno_teosinte_QM)
+filter_by_chromosome_dsc(merged_snp_geno_maize_D)
+filter_by_chromosome_asc(merged_snp_geno_maize_QM)
+filter_by_chromosome_asc(merged_snp_geno_teosinte_D)
+filter_by_chromosome_dsc(merged_snp_geno_teosinte_QM)
 ```
 
 # Plotting SNPs per chromosome
@@ -110,5 +121,22 @@ ggsave("teosinte_SNPdistChromosomes.pdf")
 install.packages("reshape2")
 library(reshape2)
 
+melted_maize <- melt(merged_snp_geno_maize, id.vars = c("SNP_ID", "Chromosome", "Position"), variable.name = "Sample", value.name = "SNP")
+melted_teosinte <- melt(merged_snp_geno_teosinte, id.vars = c("SNP_ID", "Chromosome", "Position"), variable.name = "Sample", value.name = "SNP")
 
+melted_maize_annotated <- mutate(melted_maize, AllelType = case_when((melted_maize$SNP=="A/A" | melted_maize$SNP=="G/G" | melted_maize$SNP=="C/C" | melted_maize$SNP=="T/T") ~ "homozygous", melted_maize$SNP=="?/?" ~ "Unknown", TRUE ~ "heterozygous"))
+melted_teosinte_annotated <- mutate(melted_teosinte, AllelType = case_when((melted_teosinte$SNP=="A/A" | melted_teosinte$SNP=="G/G" | melted_teosinte$SNP=="C/C" | melted_teosinte$SNP=="T/T") ~ "homozygous", melted_teosinte$SNP=="?/?" ~ "Unknown", TRUE ~ "heterozygous"))
+
+ggplot(data = melted_maize_annotated) + geom_bar(mapping = aes(x = AllelType))
+ggsave("maize_heterozygosity.pdf")
+ggplot(data = melted_teosinte_annotated) + geom_bar(mapping = aes(x = AllelType))
+ggsave("teosinte_heterozygosity.pdf")
+```
+
+#My own thang
+```{r}
+ggplot(data = melted_maize_annotated) + geom_point(mapping = aes(x = Position, y = Chromosome, color = SNP), size = 1)
+ggsave("maize_SNPdistChromosomesSNPcolor.pdf")
+ggplot(data = melted_teosinte_annotated) + geom_point(mapping = aes(x = Position, y = Chromosome, color = SNP), size = 1)
+ggsave("teosinte_SNPdistChromosomesSNPcolor.pdf")
 ```
