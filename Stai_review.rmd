@@ -1,0 +1,46 @@
+---
+title: "Stai_Review_of_Lozier"
+author: "Jacob Stai"
+date: "10/21/2019"
+output: html_document
+---
+
+# knitr::opts_chunk$set(echo = TRUE)
+Unclear the purpose of this line of code, no comment given:
+
+# Inspecting the structure and dimensions
+Unclear why it's helpful to do both dim() and nrow()/ncol(). 
+I found when I ran the str() function on fang_et_al_genotypes it produced a textwall that got top-truncated there in the console. Not sure if that was the intent, but unclear utility if so.
+
+# Filtering maize and teosinte groups from `fang_et_al_genotypes` into separate data frames
+Good.
+
+# Transposes maize and teosinte genotype data into new dataframes
+Was unclear why there's a need to get rid of the SNP_ID row names, guessing by the code that it's to prevent doubling of the column in the later merge() step.
+
+# Choosing desired columns from `snp_positions` and writing them to a new dataframe
+Good.
+
+# Merge maize and teosinte genotype dataframes with `reduced_snp_positions` dataframe
+Good.
+
+# Replacing "?/?" with "?" or "-"
+This part was done incorrectly. ?/? doesn't imply that there's a single datapoint, but two datapoints, one from each chromosome. Heterozygotes are possible, and present in other data. Theoretically, if one is interpreting this without reference to the actual datagathering methods used, it would be possible to be sure that one of the chromosomes is an A, but have no idea what the other one is e.g. a result of A/?. Although our data did not have any such cases, as a practical matter, the specification that missing data is to be encoded by ? and - means that each piece of missing data should be encoded independently as such e.g. as ?/? and -/-.
+
+# Parsing dataframes into files based on chromosome number and sorting those files based on SNP position
+This part was done incorrectly. It'd've been nice to see each line commented, not least because reviewee might've caught that they filtered the teosinte_D file by ascending and the _QM file descending, opposite of what the specs asked for. Additionally, from an efficiency standpoint, no need to create a merged file that isn't used.
+
+# Plotting SNPs per chromosome
+Yer a ggplot, Harry.
+
+# Indicate whether a site is heterozygous or not.
+Unfortunate lack of commenting, but code seems to work.
+
+#My own thang
+Unfortunate lack of commenting, but code seems to work.
+
+#####################
+# SUMMARY OF REVIEW #
+#####################
+
+Code seemed fine. Reviewee should be careful about relying on repetitive lists of function calls like what was done in the "Parsing dataframes into files" section. It's easy to call the right funtion on the wrong data, or vice versa. It might have been easier to make the function take a list of inputs, with the loop being run separately on each input. That way, the function could've been called once with both the maize and teosinte data, eliminating error potential.
